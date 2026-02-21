@@ -1,0 +1,148 @@
+{
+  "type": "scalar.function",
+  "input_schema": {
+    "type": "object",
+    "description": "An image containing a cat to evaluate for visual presence — the proportional scale, completeness, and intentional placement of the cat within the frame.",
+    "properties": {
+      "image": {
+        "type": "image",
+        "description": "The photograph to evaluate. The image should contain at least one cat whose visual presence will be scored based on how much of the frame the cat occupies, whether the cat is fully contained within the frame boundaries, and whether the cat's size and placement feel deliberate."
+      }
+    },
+    "required": [
+      "image"
+    ]
+  },
+  "tasks": [
+    {
+      "type": "vector.completion",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "$jmespath": "input.image"
+            },
+            {
+              "type": "text",
+              "text": "Look at this photograph. How much of the frame does the cat occupy? Describe the cat's size relative to the overall image."
+            }
+          ]
+        }
+      ],
+      "responses": [
+        [
+          {
+            "type": "text",
+            "text": "The cat fills a generous portion of the frame. It is large and commands the viewer's full attention — the cat is clearly the dominant subject of this photograph."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat occupies a moderate portion of the frame. It is noticeable but shares the visual space with other elements in the scene."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat is small within the frame. It occupies only a sliver of the image and reads as a minor, easily overlooked element in a larger scene."
+          }
+        ]
+      ],
+      "output": {
+        "$starlark": "output[\"scores\"][0] * 1.0 + output[\"scores\"][1] * 0.5 + output[\"scores\"][2] * 0.0"
+      }
+    },
+    {
+      "type": "vector.completion",
+      "messages": [
+        {
+          "role": "system",
+          "content": [
+            {
+              "type": "text",
+              "text": "You are a photo analyst. When shown a photograph of a cat, your job is to assess whether the cat's full body is visible within the frame or whether any parts of the cat are clipped or cut off by the edges of the image."
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "$jmespath": "input.image"
+            },
+            {
+              "type": "text",
+              "text": "Is the cat's entire body contained within this photograph, or is any part of it cut off by the frame edges?"
+            }
+          ]
+        }
+      ],
+      "responses": [
+        [
+          {
+            "type": "text",
+            "text": "The cat's entire body is fully visible within the frame. I can see its complete form — head, body, legs, paws, and tail — nothing is cut off or missing at the edges."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "Most of the cat is visible, but a small part of its body appears to be clipped by the edge of the frame. A paw, ear, or bit of tail seems to extend beyond the image boundary."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "A significant portion of the cat's body is cut off by the frame edges. The cat overflows the boundaries of the image, leaving it feeling cropped and incomplete."
+          }
+        ]
+      ],
+      "output": {
+        "$starlark": "output[\"scores\"][0] * 1.0 + output[\"scores\"][1] * 0.5 + output[\"scores\"][2] * 0.0"
+      }
+    },
+    {
+      "type": "vector.completion",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "$jmespath": "input.image"
+            },
+            {
+              "type": "text",
+              "text": "Imagine you are a photography critic. Looking at this image, does it feel like this photograph was taken on purpose to feature the cat, or does the cat seem to have ended up in the frame by coincidence? Consider the cat's placement within the frame and the space around it."
+            }
+          ]
+        }
+      ],
+      "responses": [
+        [
+          {
+            "type": "text",
+            "text": "This photograph was clearly taken to feature the cat. The cat is well-positioned within the frame with comfortable, natural margins around it. Its placement feels deliberate and composed — this is a portrait of a cat, not a scene that happens to contain one."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat appears to be the intended subject, but the framing feels somewhat careless. The cat is either a bit too close to one edge, or surrounded by more empty space than feels intentional. The composition is adequate but not purposeful."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat seems to have wandered into the frame by accident. It is awkwardly placed — crammed against an edge, or lost in a vast expanse of background. This photograph does not feel composed around the cat at all."
+          }
+        ]
+      ],
+      "output": {
+        "$starlark": "output[\"scores\"][0] * 1.0 + output[\"scores\"][1] * 0.5 + output[\"scores\"][2] * 0.0"
+      }
+    }
+  ],
+  "description": "Evaluates how proportionally present a cat is within a photograph by scoring three qualities: scale (how much of the frame the cat fills), completeness (whether the cat's full body is visible), and intentionality (whether its placement feels deliberate). Returns a score from 0 to 1."
+}
